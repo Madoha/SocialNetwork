@@ -80,6 +80,13 @@ namespace SocialNetwork.Application.Services
                 };
         }
 
+        public async Task<ApiResponse<LoginResponse>> RefreshToken(LoginResponse tokens)
+        {
+            var result = await _userCreationRepository.RenewAccessToken(tokens);
+            return result;
+
+        }
+
         //public async Task<ApiResponse<List<RegisterResponse>>> GetAllUsers()
         //{
         //    var users = await _userRepository.GetAllUsersAsync();

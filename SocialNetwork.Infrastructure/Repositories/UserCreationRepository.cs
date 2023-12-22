@@ -14,6 +14,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -64,19 +65,19 @@ namespace SocialNetwork.Infrastructure.Repositories
             if (userExist != null)
             {
                 var result = await _signInManager.PasswordSignInAsync(userExist, user.Password, false, false);
-                var jwtToken = await GetJwtTokenAsync(userExist);
+                var tokens = await GetJwtTokenAsync(userExist);
 
-                if (result.Succeeded && jwtToken != null)
+                if (result.Succeeded && tokens != null)
                 {
                     
-                    var loginResponse = new LoginResponse() { accessToken = jwtToken, refreshToken = null };
+                    var loginResponse = new LoginResponse() { accessToken = tokens.Response.accessToken, refreshToken = tokens.Response.refreshToken };
                     _logger.LogInformation("Returning loginResponse => {@loginResponse}", loginResponse);
 
                     return loginResponse;
                 }
                 else
                 {
-                    _logger.LogWarning("Can not sign in => {@result} || jwt is null => {@jwtToken}", result, jwtToken);
+                    _logger.LogWarning("Can not sign in => {@result} || jwt is null => {@jwtToken}", result, tokens);
                     return null;
                 }
             }
@@ -85,12 +86,13 @@ namespace SocialNetwork.Infrastructure.Repositories
             return null;
         }
 
-        public async Task<TokenType> GetJwtTokenAsync(ApplicationUser user)
+        public async Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(ApplicationUser user)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                //new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -100,20 +102,73 @@ namespace SocialNetwork.Infrastructure.Repositories
                 foreach (var role in roles)
                     claims.Add(new Claim(ClaimTypes.Role, role));
 
-                var jwtToken = GenerateToken(claims);
+                var jwtToken = await GenerateJwtToken(claims);
+                var refreshToken = await GenerateRefreshToken();
 
-                return new TokenType
+                _ = int.TryParse(_configuration["JwtSettings:RefreshTokenValidity"], out int refreshTokenValidity);
+
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(refreshTokenValidity);
+
+                await _userManager.UpdateAsync(user);
+
+                _logger.LogInformation("Returning tokens => {}");
+                return new ApiResponse<LoginResponse>
                 {
-                    Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                    ExpiryTokenDate = jwtToken.ValidTo
+                    IsSuccess = true,
+                    StatusCode = 200,
+                    Message = "Returning tokens",
+                    Response = new LoginResponse
+                    {
+                        accessToken = new TokenType
+                        {
+                            Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                            ExpiryTokenDate = jwtToken.ValidTo
+                        },
+
+                        refreshToken = new TokenType
+                        {
+                            Token = user.RefreshToken,
+                            ExpiryTokenDate = (DateTime)user.RefreshTokenExpiry
+                        }
+                    }
                 };
             }
 
             return null;
         }
+        public async Task<ApiResponse<LoginResponse>> RenewAccessToken(LoginResponse loginResponse)
+        {
+            var accessToken = loginResponse.accessToken;
+            var refreshToken = loginResponse.refreshToken;
+
+            var principal = await GetClaimsPrincipal(accessToken.Token);
+
+            if(principal != null && principal.Identity != null && !string.IsNullOrEmpty(principal.Identity.Name)) 
+            {
+                var user = await _userManager.FindByNameAsync(principal.Identity.Name);
+
+                if (user != null && refreshToken.Token == user.RefreshToken && refreshToken.ExpiryTokenDate > DateTime.UtcNow)
+                {
+                    var token = await GetJwtTokenAsync(user);
+
+                    _logger.LogInformation("Returning token => {@token}", token);
+                    return token;
+                }
+            }
+
+            _logger.LogWarning("Invalid principal or user not found");
+            return new ApiResponse<LoginResponse>
+            {
+                IsSuccess = false,
+                Message = "Invalid principal or user not found",
+                StatusCode = 400,
+            };
+        }
+
 
         #region PrivateMethods
-        private JwtSecurityToken GenerateToken(List<Claim> claims)
+        private async Task<JwtSecurityToken> GenerateJwtToken(List<Claim> claims)
         {
             var _ = int.TryParse(_configuration["JwtSettings:TokenValidityInMinutes"], out int tokenValidityInMinutes);
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]));
@@ -128,6 +183,32 @@ namespace SocialNetwork.Infrastructure.Repositories
 
             _logger.LogInformation("Returning generated jwtoken => {@token}", token);
             return token;
+        }
+        
+        private async Task<string> GenerateRefreshToken()
+        {
+            var randomNumber = new Byte[64];
+            var range = RandomNumberGenerator.Create();
+            range.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+        
+        private async Task<ClaimsPrincipal> GetClaimsPrincipal(string accessToken)
+        {
+            var tokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"])),
+                ValidateLifetime = true
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(accessToken, tokenValidationParameters, out SecurityToken securityToken);
+            _logger.LogInformation("Validate token => @{principal}");
+
+            return principal;
         }
         #endregion
     }

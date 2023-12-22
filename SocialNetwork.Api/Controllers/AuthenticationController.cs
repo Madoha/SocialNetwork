@@ -44,6 +44,18 @@ namespace SocialNetwork.Api.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest();
         }
 
+        [HttpPost("/renew-refresh-token")]
+        public async Task<ApiResponse<LoginResponse>> RenewRefreshToken(LoginResponse tokens)
+        {
+            var result = await _authenticationService.RefreshToken(tokens);
+            return result;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword()
+        {
+            return null;
+        }
         //[HttpGet("/get-users")]
         //public async Task<ApiResponse<List<RegisterResponse>>> getUsers()
         //{

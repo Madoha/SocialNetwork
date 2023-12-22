@@ -9,5 +9,7 @@ namespace SocialNetwork.Domain.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        public string RefreshToken { get; set; } = "0";
+        public DateTime RefreshTokenExpiry { get; set; }
     }
 }

@@ -13,5 +13,6 @@ namespace SocialNetwork.Application.Interfaces
         Task<ApiResponse<RegisterResponse>> RegisterUser(RegisterRequest request);
         //Task<ApiResponse<List<RegisterResponse>>> GetAllUsers();
         Task<ApiResponse<LoginResponse>> LoginUser(LoginRequest request);
+        Task<ApiResponse<LoginResponse>> RefreshToken(LoginResponse tokens);
     }
 }

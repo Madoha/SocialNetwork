@@ -14,6 +14,7 @@ namespace SocialNetwork.Infrastructure.Interfaces
         Task<ApplicationUser> CreateUserAsync(ApplicationUser user, RegisterRequest request);
         Task<List<ApplicationUser>> GetAllUsersAsync();
         Task<LoginResponse> LoginUserAsync(LoginRequest user);
-        Task<TokenType> GetJwtTokenAsync(ApplicationUser user);
+        Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(ApplicationUser user);
+        Task<ApiResponse<LoginResponse>> RenewAccessToken(LoginResponse loginResponse);
     }
 }
