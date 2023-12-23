@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SocialNetwork.Contracts.Authentication;
 using SocialNetwork.Application.Interfaces;
 using SocialNetwork.Domain.Models;
-using SocialNetwork.Contracts;
 using Serilog;
+using SocialNetwork.Contracts.Models.Authentication;
+using SocialNetwork.Contracts.Models.Response;
+using SocialNetwork.Contracts.Models.EmailServiceModels;
+using SocialNetwork.Api.Models;
 
 namespace SocialNetwork.Api.Controllers
 {
@@ -29,8 +31,24 @@ namespace SocialNetwork.Api.Controllers
             }
 
             var result = await _authenticationService.RegisterUser(request);
-            
+
+            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Authentication", new { token = result.Response, email = request.Email }, Request.Scheme);
+            var sendMessage = await _authenticationService.SendEmail(confirmationLink, request.Email);
+
             return result.IsSuccess ? Ok(result) : BadRequest();
+        }
+
+        [HttpGet("/confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var confimation = await _authenticationService.ConfirmEmailApp(token, email);
+            if (confimation)
+            {
+                return StatusCode(StatusCodes.Status200OK,
+                    new Response { IsSuccess = true, Message = "Email verified successfully" });
+            }
+            return StatusCode(StatusCodes.Status403Forbidden,
+                new Response { IsSuccess = false, Message = "Unaccepted, try again" });
         }
 
         [HttpPost("/login")]

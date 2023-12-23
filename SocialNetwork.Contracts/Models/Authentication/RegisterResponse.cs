@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialNetwork.Contracts.Authentication
+namespace SocialNetwork.Contracts.Models.Authentication
 {
     public class RegisterResponse
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialNetwork.Contracts.Authentication
+namespace SocialNetwork.Contracts.Models.Authentication
 {
     public class RegisterRequest
     {
@@ -20,7 +20,7 @@ namespace SocialNetwork.Contracts.Authentication
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Password does not match")]
         public string ConfirmPassword { get; set; }
-        public List<string> Roles { get; set; } 
+        public List<string> Roles { get; set; }
 
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialNetwork.Contracts
+namespace SocialNetwork.Contracts.Models.Response
 {
     public class ApiResponse<T>
     {

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using SocialNetwork.Contracts.Authentication;
+using SocialNetwork.Contracts.Models.Authentication;
 using SocialNetwork.Domain.Models;
 using System;
 using System.Collections.Generic;

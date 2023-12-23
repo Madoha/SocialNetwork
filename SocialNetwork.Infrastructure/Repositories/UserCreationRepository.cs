@@ -3,20 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using SocialNetwork.Contracts;
-using SocialNetwork.Contracts.Authentication;
-using SocialNetwork.Database.Models;
+using SocialNetwork.Contracts.Models;
+using SocialNetwork.Contracts.Models.Authentication;
+using SocialNetwork.Contracts.Models.Response;
 using SocialNetwork.Domain.Models;
-using SocialNetwork.Infrastructure.Interfaces;
-using System;
-using System.Collections.Generic;
+using SocialNetwork.Infrastructure.Interfaces.Authentication;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SocialNetwork.Infrastructure.Repositories
 {
@@ -40,21 +35,43 @@ namespace SocialNetwork.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task<ApplicationUser> CreateUserAsync(ApplicationUser user, RegisterRequest request)
+        public async Task<string> CreateUserAsync(ApplicationUser user, RegisterRequest request)
         {
+            var findUser = await _userManager.FindByEmailAsync(user.Email);
+            if (findUser != null)
+            {
+                return null;
+            }
             var result = await _userManager.CreateAsync(user, request.Password);
             if (!result.Succeeded) 
             {
                 _logger.LogWarning("User creation failed => {@result}", result);
             }
-            _logger.LogInformation("User successfully created => {@result}", result);
-            return result.Succeeded ? user : null;
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            _logger.LogInformation("User successfully created, confirm your email => {@result}", result);
+            return token;
         }
 
         public async Task<List<ApplicationUser>> GetAllUsersAsync()
         {
             var users = await _userManager.Users.AsNoTracking().ToListAsync();
             return users;
+        }
+
+        public async Task<bool> ConfirmEmailInf(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (result.Succeeded)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public async Task<LoginResponse> LoginUserAsync(LoginRequest user)
