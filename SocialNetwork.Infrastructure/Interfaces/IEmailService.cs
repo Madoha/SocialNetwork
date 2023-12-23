@@ -9,6 +9,6 @@ namespace SocialNetwork.Infrastructure.Interfaces
 {
     public interface IEmailService
     {
-        Task sendMessageAsync(Message message);
+        Task SendMessageAsync(Message message);
     }
 }

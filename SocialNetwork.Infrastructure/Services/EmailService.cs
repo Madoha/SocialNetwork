@@ -17,7 +17,7 @@ namespace SocialNetwork.Infrastructure.Services
             _emailConfiguration = emailConfiguration;
             _logger = logger;
         }
-        public async Task sendMessageAsync(Message message)
+        public async Task SendMessageAsync(Message message)
         {
             var emailMessage = CreateEmailMessage(message);
             await SendAsync(emailMessage);

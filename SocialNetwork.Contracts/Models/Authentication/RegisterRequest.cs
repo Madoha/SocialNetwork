@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,9 @@ namespace SocialNetwork.Contracts.Models.Authentication
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Password does not match")]
         public string ConfirmPassword { get; set; }
+        [DefaultValue(false)]
+        public bool TwoFactor { get; set; }
+        [Required]
         public List<string> Roles { get; set; }
 
     }

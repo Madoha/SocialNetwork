@@ -16,7 +16,7 @@ namespace SocialNetwork.Infrastructure.Interfaces.Authentication
 
         Task<bool> ConfirmEmailInf(string token, string email);
         Task<LoginResponse> LoginUserAsync(LoginRequest user);
-        Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(ApplicationUser user);
+        Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(string email);
         Task<ApiResponse<LoginResponse>> RenewAccessToken(LoginResponse loginResponse);
     }
 }

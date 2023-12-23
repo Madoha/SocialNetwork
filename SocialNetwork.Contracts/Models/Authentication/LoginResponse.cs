@@ -9,7 +9,8 @@ namespace SocialNetwork.Contracts.Models.Authentication
 {
     public class LoginResponse
     {
-        public TokenType accessToken { get; set; }
-        public TokenType refreshToken { get; set; }
+        public TokenType? accessToken { get; set; }
+        public TokenType? refreshToken { get; set; }
+        public string? Message { get; set; }
     }
 }

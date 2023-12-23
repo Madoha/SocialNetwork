@@ -5,8 +5,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using SocialNetwork.Contracts.Models;
 using SocialNetwork.Contracts.Models.Authentication;
+using SocialNetwork.Contracts.Models.EmailServiceModels;
 using SocialNetwork.Contracts.Models.Response;
 using SocialNetwork.Domain.Models;
+using SocialNetwork.Infrastructure.Interfaces;
 using SocialNetwork.Infrastructure.Interfaces.Authentication;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -22,26 +24,27 @@ namespace SocialNetwork.Infrastructure.Repositories
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<UserCreationRepository> _logger;
+        private readonly IEmailService _emailService;
         public UserCreationRepository(UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IConfiguration configuration,
-            ILogger<UserCreationRepository> logger)
+            ILogger<UserCreationRepository> logger,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public async Task<string> CreateUserAsync(ApplicationUser user, RegisterRequest request)
         {
             var findUser = await _userManager.FindByEmailAsync(user.Email);
             if (findUser != null)
-            {
                 return null;
-            }
             var result = await _userManager.CreateAsync(user, request.Password);
             if (!result.Succeeded) 
             {
@@ -79,32 +82,47 @@ namespace SocialNetwork.Infrastructure.Repositories
             var userExist = await _userManager.FindByEmailAsync(user.Email);
             //var result = await _userManager.CheckPasswordAsync(userExist, user.Password);
 
-            if (userExist != null)
+            if (userExist != null && userExist.EmailConfirmed)
             {
-                var result = await _signInManager.PasswordSignInAsync(userExist, user.Password, false, false);
-                var tokens = await GetJwtTokenAsync(userExist);
+                await _signInManager.SignOutAsync();
+                var result = await _signInManager.PasswordSignInAsync(userExist, user.Password, false, true);
 
-                if (result.Succeeded && tokens != null)
+                if (userExist.TwoFactorEnabled)
                 {
-                    
-                    var loginResponse = new LoginResponse() { accessToken = tokens.Response.accessToken, refreshToken = tokens.Response.refreshToken };
-                    _logger.LogInformation("Returning loginResponse => {@loginResponse}", loginResponse);
+                    var token = await _userManager.GenerateTwoFactorTokenAsync(userExist, "Email");
+                    var message = new Message(new string[] { userExist.Email }, "OTP Confirmation", token);
+                    await _emailService.SendMessageAsync(message);
 
-                    return loginResponse;
-                }
+                    return new LoginResponse { Message = $"We have send OTP to {userExist.Email}" };
+                } 
                 else
                 {
-                    _logger.LogWarning("Can not sign in => {@result} || jwt is null => {@jwtToken}", result, tokens);
-                    return null;
+                    var tokens = await GetJwtTokenAsync(userExist.Email);
+
+                    if (result.Succeeded && tokens != null)
+                    {
+                    
+                        var loginResponse = new LoginResponse() { accessToken = tokens.Response.accessToken, refreshToken = tokens.Response.refreshToken};
+                        _logger.LogInformation("Returning loginResponse => {@loginResponse}", loginResponse);
+
+                        return loginResponse;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Can not sign in => {@result} || jwt is null => {@jwtToken}", result, tokens);
+                        return null;
+                    }
                 }
+
             }
 
             _logger.LogWarning("User does not exist => {@userExist}", userExist);
             return null;
         }
 
-        public async Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(ApplicationUser user)
+        public async Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(string email)
         {
+            var user = await _userManager.FindByEmailAsync(email);
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
@@ -146,7 +164,7 @@ namespace SocialNetwork.Infrastructure.Repositories
                         refreshToken = new TokenType
                         {
                             Token = user.RefreshToken,
-                            ExpiryTokenDate = (DateTime)user.RefreshTokenExpiry
+                            ExpiryTokenDate = user.RefreshTokenExpiry
                         }
                     }
                 };
@@ -167,7 +185,7 @@ namespace SocialNetwork.Infrastructure.Repositories
 
                 if (user != null && refreshToken.Token == user.RefreshToken && refreshToken.ExpiryTokenDate > DateTime.UtcNow)
                 {
-                    var token = await GetJwtTokenAsync(user);
+                    var token = await GetJwtTokenAsync(user.Email);
 
                     _logger.LogInformation("Returning token => {@token}", token);
                     return token;

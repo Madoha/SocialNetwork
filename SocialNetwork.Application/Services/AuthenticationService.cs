@@ -43,6 +43,7 @@ namespace SocialNetwork.Application.Services
         public async Task<ApiResponse<string>> RegisterUser(RegisterRequest request)
         {
             var userDto = _mapper.Map<ApplicationUser>(request);
+            userDto.TwoFactorEnabled = request.TwoFactor;
             var result = await _userCreationRepository.CreateUserAsync(userDto, request);
             if (result is not null)
             {
@@ -68,7 +69,7 @@ namespace SocialNetwork.Application.Services
         public async Task<ApiResponse<Message>> SendEmail(string link, string email)
         {
             var message = new Message(new string[] { email! }, "Confirmation email link", link );
-            await _emailService.sendMessageAsync(message);
+            await _emailService.SendMessageAsync(message);
             return new ApiResponse<Message>()
             {
                 StatusCode = 200,
@@ -88,6 +89,7 @@ namespace SocialNetwork.Application.Services
         {
             //var userDto = _mapper.Map<ApplicationUser>(request);
             var result = await _userCreationRepository.LoginUserAsync(request);
+
             return result != null ?
                 new ApiResponse<LoginResponse>()
                 {
@@ -103,6 +105,17 @@ namespace SocialNetwork.Application.Services
                     StatusCode = 300,
                     Response = result
                 };
+        }
+
+        public async Task<ApiResponse<LoginResponse>> LoginWithOtpApp(string code, string email)
+        {
+            var signin = await _signInManager.TwoFactorSignInAsync("Email", code, false, false);
+            if (signin != null)
+            {
+                var token = await _userCreationRepository.GetJwtTokenAsync(email);
+                return token;
+            }
+            return null;
         }
 
         public async Task<ApiResponse<LoginResponse>> RefreshToken(LoginResponse tokens)

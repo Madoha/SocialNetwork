@@ -41,8 +41,8 @@ namespace SocialNetwork.Api.Controllers
         [HttpGet("/confirm-email")]
         public async Task<IActionResult> ConfirmEmail(string token, string email)
         {
-            var confimation = await _authenticationService.ConfirmEmailApp(token, email);
-            if (confimation)
+            var confirmation = await _authenticationService.ConfirmEmailApp(token, email);
+            if (confirmation)
             {
                 return StatusCode(StatusCodes.Status200OK,
                     new Response { IsSuccess = true, Message = "Email verified successfully" });
@@ -62,6 +62,13 @@ namespace SocialNetwork.Api.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest();
         }
 
+        [HttpPost("/login-otp")]
+        public async Task<IActionResult> LoginWithOTP(string code, string email)
+        {
+            var loginWithOTP = await _authenticationService.LoginWithOtpApp(code, email);
+            return loginWithOTP.IsSuccess ? Ok(loginWithOTP) : BadRequest();
+        }
+
         [HttpPost("/renew-refresh-token")]
         public async Task<ApiResponse<LoginResponse>> RenewRefreshToken(LoginResponse tokens)
         {
@@ -69,7 +76,7 @@ namespace SocialNetwork.Api.Controllers
             return result;
         }
 
-        [HttpGet]
+        [HttpPost("/reset-password")]
         public async Task<IActionResult> ResetPassword()
         {
             return null;

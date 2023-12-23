@@ -17,5 +17,6 @@ namespace SocialNetwork.Application.Interfaces
         Task<ApiResponse<Message>> SendEmail(string link, string email);
         Task<ApiResponse<LoginResponse>> LoginUser(LoginRequest request);
         Task<ApiResponse<LoginResponse>> RefreshToken(LoginResponse tokens);
+        Task<ApiResponse<LoginResponse>> LoginWithOtpApp(string code, string email);
     }
 }
