@@ -32,10 +32,20 @@ namespace SocialNetwork.Api.Controllers
 
             var result = await _authenticationService.RegisterUser(request);
 
+            if (!result.IsSuccess)
+                return BadRequest(ModelState);
+
             var confirmationLink = Url.Action(nameof(ConfirmEmail), "Authentication", new { token = result.Response, email = request.Email }, Request.Scheme);
             var sendMessage = await _authenticationService.SendEmail(confirmationLink, request.Email);
 
-            return result.IsSuccess ? Ok(result) : BadRequest();
+            if (sendMessage.IsSuccess)
+            {
+                return StatusCode(StatusCodes.Status201Created,
+                    new Response { IsSuccess = true, Message = result.Message });
+            }
+
+            return BadRequest(sendMessage);
+
         }
 
         [HttpGet("/confirm-email")]
@@ -59,28 +69,23 @@ namespace SocialNetwork.Api.Controllers
             
             var result = await _authenticationService.LoginUser(request);
 
-            return result.IsSuccess ? Ok(result) : BadRequest();
+            return result.IsSuccess ? Ok(result) : BadRequest(ModelState);
         }
 
         [HttpPost("/login-otp")]
         public async Task<IActionResult> LoginWithOTP(string code, string email)
         {
             var loginWithOTP = await _authenticationService.LoginWithOtpApp(code, email);
-            return loginWithOTP.IsSuccess ? Ok(loginWithOTP) : BadRequest();
+            return loginWithOTP.IsSuccess ? Ok(loginWithOTP) : BadRequest(ModelState);
         }
 
         [HttpPost("/renew-refresh-token")]
-        public async Task<ApiResponse<LoginResponse>> RenewRefreshToken(LoginResponse tokens)
+        public async Task<IActionResult> RenewRefreshToken(LoginResponse tokens)
         {
             var result = await _authenticationService.RefreshToken(tokens);
-            return result;
+            return result.IsSuccess ? Ok(result) : BadRequest(ModelState);
         }
 
-        [HttpPost("/reset-password")]
-        public async Task<IActionResult> ResetPassword()
-        {
-            return null;
-        }
         //[HttpGet("/get-users")]
         //public async Task<ApiResponse<List<RegisterResponse>>> getUsers()
         //{

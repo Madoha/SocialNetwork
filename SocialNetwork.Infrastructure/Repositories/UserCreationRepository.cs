@@ -116,13 +116,25 @@ namespace SocialNetwork.Infrastructure.Repositories
 
             }
 
-            _logger.LogWarning("User does not exist => {@userExist}", userExist);
+            _logger.LogWarning("User does not exist or email did not confirmed => {@userExist}", userExist);
             return null;
         }
 
         public async Task<ApiResponse<LoginResponse>> GetJwtTokenAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
+            
+            if (user == null)
+            {
+                _logger.LogWarning("Can not find user");
+                return new ApiResponse<LoginResponse>()
+                {
+                    IsSuccess = false,
+                    Message = "Can not find user",
+                    StatusCode = 0,
+                    Response = null
+                };
+            }
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
@@ -183,7 +195,7 @@ namespace SocialNetwork.Infrastructure.Repositories
             {
                 var user = await _userManager.FindByNameAsync(principal.Identity.Name);
 
-                if (user != null && refreshToken.Token == user.RefreshToken && refreshToken.ExpiryTokenDate > DateTime.UtcNow)
+                if (user != null && refreshToken.Token == user.RefreshToken && user.RefreshTokenExpiry > DateTime.UtcNow)
                 {
                     var token = await GetJwtTokenAsync(user.Email);
 
@@ -200,7 +212,6 @@ namespace SocialNetwork.Infrastructure.Repositories
                 StatusCode = 400,
             };
         }
-
 
         #region PrivateMethods
         private async Task<JwtSecurityToken> GenerateJwtToken(List<Claim> claims)

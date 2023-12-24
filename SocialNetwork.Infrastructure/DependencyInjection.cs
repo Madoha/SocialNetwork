@@ -26,6 +26,7 @@ namespace SocialNetwork.Infrastructure
             services.AddScoped<IUserCreationRepository, UserCreationRepository>();
             services.AddScoped<IUserRolesRepository, UserRolesRepository>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IAccountRepository, AccountRepository>();
 
             var emailConfiguration = configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
             services.AddSingleton(emailConfiguration);

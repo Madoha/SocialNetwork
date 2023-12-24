@@ -58,7 +58,7 @@ namespace SocialNetwork.Application.Services
                 return new ApiResponse<string>()
                 {
                     StatusCode = 200,
-                    Message = $"User successfully created, Click a link to confirm your email in {request.Email}",
+                    Message = $"User successfully created, Click a link to confirm your email in {request.Email}, WITHOUT CONFIRMATION YOU CAN NOT SIGN UP",
                     IsSuccess = true,
                     Response = result
                 };
@@ -68,6 +68,17 @@ namespace SocialNetwork.Application.Services
 
         public async Task<ApiResponse<Message>> SendEmail(string link, string email)
         {
+            if (link == null || email == null)
+            {
+                return new ApiResponse<Message>()
+                {
+                    IsSuccess = false,
+                    StatusCode = 0,
+                    Message = "one of the parameters null",
+                    Response = null
+                };
+            }
+
             var message = new Message(new string[] { email! }, "Confirmation email link", link );
             await _emailService.SendMessageAsync(message);
             return new ApiResponse<Message>()
