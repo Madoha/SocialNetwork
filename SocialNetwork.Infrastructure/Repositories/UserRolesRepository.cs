@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using SocialNetwork.Domain.Models;
-using SocialNetwork.Infrastructure.Interfaces;
+using SocialNetwork.Infrastructure.Interfaces.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;

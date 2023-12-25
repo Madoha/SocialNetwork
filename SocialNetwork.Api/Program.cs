@@ -17,7 +17,8 @@ var _configuration = builder.Configuration;
     // for ef
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
-        options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
+        //options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
+        options.UseNpgsql(_configuration.GetConnectionString("PostgresqlConnection"));
     });
 
     // identity settings

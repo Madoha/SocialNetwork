@@ -4,10 +4,13 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using SocialNetwork.Contracts.Models.EmailServiceModels;
 using SocialNetwork.Database.Models;
 using SocialNetwork.Domain.Models;
 using SocialNetwork.Infrastructure.Interfaces;
+using SocialNetwork.Infrastructure.Interfaces.Authentication;
 using SocialNetwork.Infrastructure.Repositories;
+using SocialNetwork.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +25,12 @@ namespace SocialNetwork.Infrastructure
         {
             services.AddScoped<IUserCreationRepository, UserCreationRepository>();
             services.AddScoped<IUserRolesRepository, UserRolesRepository>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IAccountRepository, AccountRepository>();
+
+            var emailConfiguration = configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
+            services.AddSingleton(emailConfiguration);
+
 
             services.AddAuthentication(options =>
             {
@@ -49,3 +58,4 @@ namespace SocialNetwork.Infrastructure
         }
     }
 }
+

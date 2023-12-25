@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SocialNetwork.Contracts.Authentication;
 using SocialNetwork.Application.Interfaces;
 using SocialNetwork.Domain.Models;
-using SocialNetwork.Contracts;
 using Serilog;
+using SocialNetwork.Contracts.Models.Authentication;
+using SocialNetwork.Contracts.Models.Response;
+using SocialNetwork.Contracts.Models.EmailServiceModels;
+using SocialNetwork.Api.Models;
 
 namespace SocialNetwork.Api.Controllers
 {
@@ -29,8 +31,34 @@ namespace SocialNetwork.Api.Controllers
             }
 
             var result = await _authenticationService.RegisterUser(request);
-            
-            return result.IsSuccess ? Ok(result) : BadRequest();
+
+            if (!result.IsSuccess)
+                return BadRequest(ModelState);
+
+            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Authentication", new { token = result.Response, email = request.Email }, Request.Scheme);
+            var sendMessage = await _authenticationService.SendEmail(confirmationLink, request.Email);
+
+            if (sendMessage.IsSuccess)
+            {
+                return StatusCode(StatusCodes.Status201Created,
+                    new Response { IsSuccess = true, Message = result.Message });
+            }
+
+            return BadRequest(sendMessage);
+
+        }
+
+        [HttpGet("/confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var confirmation = await _authenticationService.ConfirmEmailApp(token, email);
+            if (confirmation)
+            {
+                return StatusCode(StatusCodes.Status200OK,
+                    new Response { IsSuccess = true, Message = "Email verified successfully" });
+            }
+            return StatusCode(StatusCodes.Status403Forbidden,
+                new Response { IsSuccess = false, Message = "Unaccepted, try again" });
         }
 
         [HttpPost("/login")]
@@ -41,7 +69,21 @@ namespace SocialNetwork.Api.Controllers
             
             var result = await _authenticationService.LoginUser(request);
 
-            return result.IsSuccess ? Ok(result) : BadRequest();
+            return result.IsSuccess ? Ok(result) : BadRequest(ModelState);
+        }
+
+        [HttpPost("/login-otp")]
+        public async Task<IActionResult> LoginWithOTP(string code, string email)
+        {
+            var loginWithOTP = await _authenticationService.LoginWithOtpApp(code, email);
+            return loginWithOTP.IsSuccess ? Ok(loginWithOTP) : BadRequest(ModelState);
+        }
+
+        [HttpPost("/renew-refresh-token")]
+        public async Task<IActionResult> RenewRefreshToken(LoginResponse tokens)
+        {
+            var result = await _authenticationService.RefreshToken(tokens);
+            return result.IsSuccess ? Ok(result) : BadRequest(ModelState);
         }
 
         //[HttpGet("/get-users")]

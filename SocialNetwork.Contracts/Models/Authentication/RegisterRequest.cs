@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialNetwork.Contracts.Authentication
+namespace SocialNetwork.Contracts.Models.Authentication
 {
     public class RegisterRequest
     {
@@ -20,7 +21,10 @@ namespace SocialNetwork.Contracts.Authentication
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Password does not match")]
         public string ConfirmPassword { get; set; }
-        public List<string> Roles { get; set; } 
+        [DefaultValue(false)]
+        public bool TwoFactor { get; set; }
+        [Required]
+        public List<string> Roles { get; set; }
 
     }
 }

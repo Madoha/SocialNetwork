@@ -17,6 +17,12 @@ namespace SocialNetwork.Application
         {
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             //services.AddScoped<RoleManager<ApplicationUser>>();
+            services.AddScoped<IAccountService, AccountService>();
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.SignIn.RequireConfirmedEmail = true;
+            });
 
             return services;
         }

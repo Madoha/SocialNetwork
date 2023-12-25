@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialNetwork.Infrastructure.Interfaces
+namespace SocialNetwork.Infrastructure.Interfaces.Authentication
 {
     public interface IUserRolesRepository
     {
