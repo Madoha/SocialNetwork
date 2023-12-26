@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SocialNetwork.Contracts.Models
+namespace SocialNetwork.Contracts.Models.AccountMani
 {
     public class ResetPassword
     {

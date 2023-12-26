@@ -17,9 +17,24 @@ namespace SocialNetwork.Database.Models
             
         }
 
+        public DbSet<Post> Posts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<ApplicationUser>()
+                .HasMany(p => p.Posts)
+                .WithOne(u => u.User)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Post>()
+                .HasOne(u => u.User)
+                .WithMany(p => p.Posts)
+                .HasForeignKey(u => u.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             SeedRoles(builder);
         }
 
@@ -28,7 +43,7 @@ namespace SocialNetwork.Database.Models
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole() { Name = "Admin", ConcurrencyStamp = "1", NormalizedName = "ADMIN" },
                 new IdentityRole() { Name = "User", ConcurrencyStamp = "2", NormalizedName = "USER"},
-                new IdentityRole() { Name = "Bloger", ConcurrencyStamp = "3", NormalizedName = "BLOGER"}
+                new IdentityRole() { Name = "Tester", ConcurrencyStamp = "3", NormalizedName = "TESTER"}
                 );
         }
     }

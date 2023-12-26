@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using SocialNetwork.Contracts.DTOs;
+using SocialNetwork.Contracts.Models.AccountMani;
+using SocialNetwork.Contracts.Models.AccountMani.AddPost;
 using SocialNetwork.Contracts.Models.Authentication;
 using SocialNetwork.Domain.Models;
 using System;
@@ -16,6 +19,10 @@ namespace SocialNetwork.Application.Mappers
             CreateMap<RegisterRequest, ApplicationUser>().ReverseMap();
             CreateMap<RegisterResponse, ApplicationUser>().ReverseMap();
             CreateMap<LoginRequest, ApplicationUser>().ReverseMap();
+            CreateMap<Post, AddPost>().ReverseMap();
+            CreateMap<Post, EditPost>().ReverseMap();
+            CreateMap<UserDTO, ApplicationUser>().ReverseMap();
+            CreateMap<PostDTO, Post>().ReverseMap();
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SocialNetwork.Database.Models;
@@ -11,9 +12,10 @@ using SocialNetwork.Database.Models;
 namespace SocialNetwork.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231225153441_PostParameters")]
+    partial class PostParameters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,21 +52,21 @@ namespace SocialNetwork.Database.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e6709876-5a5f-4c1a-9dd1-61626b4dd998",
+                            Id = "e6d41829-a656-400d-bde7-32fe87064fe8",
                             ConcurrencyStamp = "1",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "ad532c10-96b9-4cfd-86cb-68c311bd73cc",
+                            Id = "e5edd58e-51e2-49de-a5d2-16c5f3e3be1d",
                             ConcurrencyStamp = "2",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
-                            Id = "446b646a-efac-424e-94db-0479c9c70d4a",
+                            Id = "f7612605-60c7-490d-9113-aaf50a1b517d",
                             ConcurrencyStamp = "3",
                             Name = "Tester",
                             NormalizedName = "TESTER"
@@ -275,12 +277,6 @@ namespace SocialNetwork.Database.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("WasCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("WasEdited")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

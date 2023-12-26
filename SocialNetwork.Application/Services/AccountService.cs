@@ -1,8 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using SocialNetwork.Application.Interfaces;
-using SocialNetwork.Contracts.Models;
+using SocialNetwork.Contracts.DTOs;
+using SocialNetwork.Contracts.Models.AccountMani;
+using SocialNetwork.Contracts.Models.AccountMani.AddPost;
 using SocialNetwork.Contracts.Models.EmailServiceModels;
 using SocialNetwork.Contracts.Models.Response;
+using SocialNetwork.Domain.Models;
 using SocialNetwork.Infrastructure.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -17,13 +21,16 @@ namespace SocialNetwork.Application.Services
         private readonly IAccountRepository _accountRepository;
         private readonly IEmailService _emailService;
         private readonly ILogger<AccountService> _logger;
+        private readonly IMapper _mapper;
         public AccountService(IAccountRepository accountRepository, 
             IEmailService emailService,
-            ILogger<AccountService> logger)
+            ILogger<AccountService> logger,
+            IMapper mapper)
         {
             _accountRepository = accountRepository;
             _emailService = emailService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponse<string>> GetResetToken(string email)
@@ -50,7 +57,7 @@ namespace SocialNetwork.Application.Services
 
         public async Task<ApiResponse<Message>> SendEmailReset(string link, string email)
         {
-            if (link == null || email == null)
+            if (string.IsNullOrEmpty(link) || string.IsNullOrEmpty(email))
             {
                 _logger.LogWarning("Link or email is empty", link, email);
                 return new ApiResponse<Message>
@@ -93,6 +100,118 @@ namespace SocialNetwork.Application.Services
                 StatusCode = 0,
                 Message = "Can not change the password",
                 Response = false
+            };
+        }
+
+        public async Task<bool> AddPost(AddPost post, string username)
+        {
+            var rePost = _mapper.Map<Post>(post);
+            var addPost = await _accountRepository.AddPost(rePost, username);
+
+            return addPost;
+        }
+
+        public async Task<List<Post>> AllPosts()
+        {
+            var posts = await _accountRepository.AllPosts();
+
+            return posts.Count == 0 ? null : posts;
+        }
+
+        public async Task<ApiResponse<List<PostDTO>>> GetUserPosts(string username)
+        {
+            var userPosts = await _accountRepository.GetUserPosts(username);
+            var userPostsDto = _mapper.Map<List<PostDTO>>(userPosts);
+            return userPosts != null ? new ApiResponse<List<PostDTO>>
+            {
+                IsSuccess = true,
+                Message = "User posts",
+                StatusCode = 200,
+                Response = userPostsDto,
+            } : new ApiResponse<List<PostDTO>>
+            {
+                IsSuccess = false,
+                Message = "Can not return user posts(returning null)",
+                StatusCode = 400,
+                Response = userPostsDto,
+            };
+        }
+
+        public async Task<ApiResponse<Post>> GetPost(string postId)
+        {
+            var post = await _accountRepository.GetPost(postId);
+            return post != null ? new ApiResponse<Post>
+            {
+                IsSuccess = true,
+                Message = "returning post",
+                Response = post
+            } : new ApiResponse<Post>
+            {
+                IsSuccess = false,
+                Message = "can not return this post",
+                Response = post
+            };
+        }
+
+        public async Task<ApiResponse<bool>> DeleteUserPost(string postId, string username)
+        {
+            var result = await _accountRepository.DeleteUserPost(postId, username);
+            return result ? new ApiResponse<bool> { IsSuccess = true, Message = "Post removed", StatusCode = 200 }
+            : new ApiResponse<bool>() { IsSuccess = false, StatusCode = 400, Message = "Can not remove this post, note: check if post id is correct" };
+        }
+
+        public async Task<List<Post>> UserPostsByData(DateTime? from, DateTime? to, string username)
+        {
+            var posts = await _accountRepository.UserPostsByData(from, to, username);
+            return posts;
+        }
+
+        public async Task<ApiResponse<Post>> EditPost(string postId, string username, EditPost post)
+        {
+            var postMapper = _mapper.Map<Post>(post);
+            postMapper.Id = Guid.Parse(postId);
+
+            var editPost = await _accountRepository.EditPost(postId, username, postMapper);
+
+            return editPost != null ? new ApiResponse<Post>
+            {
+                IsSuccess = true,
+                StatusCode = 200,
+                Message = "Post edited",
+                Response = editPost
+            } : new ApiResponse<Post>()
+            {
+                IsSuccess = false,
+                Message = "Can not edit post",
+                StatusCode = 400,
+                Response = editPost
+            };
+        }
+
+        public async Task<ApiResponse<UserDTO>> UserSelfProfile(string username)
+        {
+            var userData = await _accountRepository.UserSelfProfile(username);
+            var userDto = _mapper.Map<UserDTO>(userData);
+
+            if (userData != null)
+            {
+                var userPosts = await GetUserPosts(username);
+                userDto.Posts = userPosts.Response;
+                return new ApiResponse<UserDTO>
+                {
+                    IsSuccess = true,
+                    Message = "User profile",
+                    StatusCode = 200,
+                    Response = userDto
+                };
+            }
+
+            return new ApiResponse<UserDTO>
+            {
+                IsSuccess = false,
+                StatusCode = 404,
+                Message = "User does not exist or something",
+                Response = null
             };
         }
     }

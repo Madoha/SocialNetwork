@@ -42,10 +42,14 @@ namespace SocialNetwork.Infrastructure.Repositories
 
         public async Task<string> CreateUserAsync(ApplicationUser user, RegisterRequest request)
         {
-            var findUser = await _userManager.FindByEmailAsync(user.Email);
-            if (findUser != null)
+            var userException = await _userManager.FindByNameAsync(user.UserName);
+            //var findUser = await _userManager.FindByEmailAsync(user.Email);
+
+            if (userException != null)
                 return null;
+
             var result = await _userManager.CreateAsync(user, request.Password);
+
             if (!result.Succeeded) 
             {
                 _logger.LogWarning("User creation failed => {@result}", result);
