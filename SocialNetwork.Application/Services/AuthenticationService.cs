@@ -112,7 +112,7 @@ namespace SocialNetwork.Application.Services
                 new ApiResponse<LoginResponse>()
                 {
                     IsSuccess = false,
-                    Message = "Invalid login cred or user not found",
+                    Message = "Invalid login cred or user not found or email didnot confirm",
                     StatusCode = 300,
                     Response = result
                 };

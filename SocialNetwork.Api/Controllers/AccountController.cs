@@ -160,7 +160,7 @@ namespace SocialNetwork.Api.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _accountService.GetAllUsers();
-            return Ok(users);
+            return users != null ? Ok(users) : BadRequest(ModelState);
         }
 
         [HttpPost("/enter-comment-to-post")]
@@ -189,7 +189,8 @@ namespace SocialNetwork.Api.Controllers
 
             var addFriendResult = await _accountService.AddFriendToMy(username, friendId);
 
-            return addFriendResult ? Ok(addFriendResult) : BadRequest();
+            return addFriendResult ? StatusCode(StatusCodes.Status200OK, new Response { IsSuccess = true, Message = "Friend added" }) 
+                : StatusCode(StatusCodes.Status404NotFound, new Response { IsSuccess = false, Message = "Something went wrong while adding, or user with friend id does not exist" });
         }
 
         [HttpGet("/my-friends")]
@@ -198,8 +199,9 @@ namespace SocialNetwork.Api.Controllers
             var username = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
 
             var friends = await _accountService.GetMyFriendsApp(username);
-            return Ok(friends);
+            return friends != null ? Ok(friends) : BadRequest(ModelState);
         }
+
         // after frontend
         //[HttpPost("/upload-image")]
         //public async Task<IActionResult> UploadPhoto(IFormFile file)

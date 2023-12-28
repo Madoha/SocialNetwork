@@ -218,6 +218,10 @@ namespace SocialNetwork.Application.Services
         public async Task<IEnumerable<UserDTO>> GetAllUsers()
         {
             var users = await _accountRepository.GetAllUsers();
+
+            if (users == null)
+                return null;
+
             var usersDto = _mapper.Map<IEnumerable<UserDTO>>(users);
             return usersDto;
         }
@@ -249,11 +253,16 @@ namespace SocialNetwork.Application.Services
             // list of friends id
             var friendsId = await _accountRepository.GetMyFriendsInf(username);
 
+            if (friendsId == null)
+                return null;
+
             List<ApplicationUser> friendsUser = new();
+            
             foreach (var friend in friendsId)
                 friendsUser.Add(await _accountRepository.GetUserById(friend));
 
             List<UserDTO> userDTOs = _mapper.Map<List<UserDTO>>(friendsUser);
+
             return userDTOs;
         }
     }

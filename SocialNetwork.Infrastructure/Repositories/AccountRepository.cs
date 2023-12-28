@@ -208,6 +208,10 @@ namespace SocialNetwork.Infrastructure.Repositories
         public async Task<List<String>> GetMyFriendsInf(string username)
         {
             var user = await GetUserByName(username);
+
+            if (user == null)
+                return null;
+
             var userInfo = await _dbContext.Friendships.Where(u => u.User1Id == user.Id).ToListAsync();
 
             List<String> users = new();
