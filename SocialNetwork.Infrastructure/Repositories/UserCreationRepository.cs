@@ -86,7 +86,8 @@ namespace SocialNetwork.Infrastructure.Repositories
             var userExist = await _userManager.FindByEmailAsync(user.Email);
             //var result = await _userManager.CheckPasswordAsync(userExist, user.Password);
 
-            if (userExist != null && userExist.EmailConfirmed)
+            //if (userExist != null && userExist.EmailConfirmed)
+            if (userExist != null)
             {
                 await _signInManager.SignOutAsync();
                 var result = await _signInManager.PasswordSignInAsync(userExist, user.Password, false, true);

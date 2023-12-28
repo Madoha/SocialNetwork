@@ -25,5 +25,9 @@ namespace SocialNetwork.Application.Interfaces
         Task<ApiResponse<Post>> EditPost(string postId, string username, EditPost post);
         Task<ApiResponse<Post>> GetPost(string postId);
         Task<ApiResponse<UserDTO>> UserSelfProfile(string username);
+        Task<IEnumerable<UserDTO>> GetAllUsers();
+        Task<bool> PostComment(string postId, string username, CommentDTO comment);
+        Task<bool> AddFriendToMy(string myUsername, string friendId);
+        Task<List<UserDTO>> GetMyFriendsApp(string username);
     }
 }

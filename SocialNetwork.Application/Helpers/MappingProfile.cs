@@ -23,6 +23,7 @@ namespace SocialNetwork.Application.Mappers
             CreateMap<Post, EditPost>().ReverseMap();
             CreateMap<UserDTO, ApplicationUser>().ReverseMap();
             CreateMap<PostDTO, Post>().ReverseMap();
+            CreateMap<CommentDTO, Comment>().ReverseMap();
         }
     }
 }

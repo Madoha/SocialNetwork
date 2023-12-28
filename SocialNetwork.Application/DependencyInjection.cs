@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SocialNetwork.Application.Helpers;
 using SocialNetwork.Application.Interfaces;
 using SocialNetwork.Application.Services;
 using SocialNetwork.Domain.Models;
@@ -13,11 +15,16 @@ namespace SocialNetwork.Application
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
+        public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             //services.AddScoped<RoleManager<ApplicationUser>>();
             services.AddScoped<IAccountService, AccountService>();
+
+            //var cloudinarySettings = configuration.GetSection("CloudinarySettings").Get<CloudinarySettings>();
+            //services.AddSingleton(cloudinarySettings);
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+            services.AddScoped<IPhotoService, PhotoService>();
 
             services.Configure<IdentityOptions>(options =>
             {

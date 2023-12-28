@@ -12,5 +12,7 @@ namespace SocialNetwork.Domain.Models
         public string RefreshToken { get; set; } = "0";
         public DateTime RefreshTokenExpiry { get; set; }
         public List<Post> Posts { get; set; }
+        public List<Comment> Comments { get; set; }
+        public virtual List<Friendship> Friendships { get; set; }
     }
 }

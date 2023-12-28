@@ -16,7 +16,8 @@ namespace SocialNetwork.Api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        public AccountController(IAccountService accountService)
+        public AccountController(IAccountService accountService,
+            IPhotoService photoService)
         {
             _accountService = accountService;
         }
@@ -153,5 +154,59 @@ namespace SocialNetwork.Api.Controllers
             return userData.IsSuccess ? StatusCode(StatusCodes.Status200OK, userData.Response) 
                 : StatusCode(StatusCodes.Status404NotFound, new Response { IsSuccess = false, Message = "User does not exist or something" });
         }
+
+        [HttpGet("/get-all-users")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _accountService.GetAllUsers();
+            return Ok(users);
+        }
+
+        [HttpPost("/enter-comment-to-post")]
+        public async Task<IActionResult> PostComment([FromQuery] string postId,[FromBody] CommentDTO comment)
+        {
+            var username = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
+            var addComment = await _accountService.PostComment(postId, username, comment);
+
+            return addComment ? StatusCode(StatusCodes.Status200OK, new Response { IsSuccess = true, Message = "Comment added" })
+                : StatusCode(StatusCodes.Status400BadRequest, new Response { IsSuccess = false, Message = "Can not add comment" });
+        }
+
+        [HttpGet("/see-post-comments/{postId}")]
+        public async Task<IActionResult> SeePostComments(string postId)
+        {
+            var post = await _accountService.GetPost(postId);
+
+            return post.IsSuccess ? StatusCode(StatusCodes.Status200OK, post.Response)
+                : StatusCode(StatusCodes.Status404NotFound, new Response { IsSuccess = false, Message = "Can not find && return post", Status = "404" });
+        }
+
+        [HttpPost("/add-friends")]
+        public async Task<IActionResult> AddFriend(string friendId)
+        {
+            var username = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
+
+            var addFriendResult = await _accountService.AddFriendToMy(username, friendId);
+
+            return addFriendResult ? Ok(addFriendResult) : BadRequest();
+        }
+
+        [HttpGet("/my-friends")]
+        public async Task<IActionResult> MyFriends()
+        {
+            var username = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
+
+            var friends = await _accountService.GetMyFriendsApp(username);
+            return Ok(friends);
+        }
+        // after frontend
+        //[HttpPost("/upload-image")]
+        //public async Task<IActionResult> UploadPhoto(IFormFile file)
+        //{
+        //    var username = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
+
+        //    var result = await _photoService.AddPhotoAsync(file);
+        //}
     }
 }

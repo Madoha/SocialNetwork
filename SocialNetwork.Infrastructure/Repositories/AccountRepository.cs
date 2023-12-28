@@ -146,7 +146,7 @@ namespace SocialNetwork.Infrastructure.Repositories
         public async Task<Post> GetPost(string postId)
         {
             //var post = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id.ToString() == postId);
-            var post = await _dbContext.Posts.FirstOrDefaultAsync(p => p.Id.ToString() == postId);
+            var post = await _dbContext.Posts.Where(p => p.Id.ToString() == postId).Include(p => p.Comments).FirstOrDefaultAsync();
 
             return post;
         }
@@ -155,6 +155,67 @@ namespace SocialNetwork.Infrastructure.Repositories
         {
             var userData = await _userManager.FindByNameAsync(username);
             return userData;
+        }
+
+        public async Task<IEnumerable<ApplicationUser>> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return users;
+        }
+
+        public async Task<bool> PostComment(Comment commentToPost)
+        {
+            var commentDescription = await _userManager.FindByNameAsync(commentToPost.Username);
+            commentToPost.User = commentDescription;
+            commentToPost.Post = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id == commentToPost.PostId);
+            commentToPost.UserId = commentDescription.Id;
+
+            var result = await _dbContext.Comments.AddAsync(commentToPost);
+            var post = await _dbContext.Posts.Where(p => p.Id == commentToPost.PostId).FirstOrDefaultAsync();
+            post.CommentCount++;
+
+            await _dbContext.SaveChangesAsync();
+            
+            return result != null ? true : false;
+        }
+
+        public async Task<ApplicationUser> GetUserByName(string username)
+        {
+            return await _userManager.FindByNameAsync(username);
+        }
+
+        public async Task<ApplicationUser> GetUserById(string id)
+        {
+            return await _userManager.FindByIdAsync(id);
+        }
+
+        public async Task<bool> AddFriendToMy(ApplicationUser user, ApplicationUser friendExist)
+        {
+            var friendShip = new Friendship
+            {
+                User1Id = user.Id,
+                User2Id = friendExist.Id,
+                User1 = user,
+                User2 = friendExist,
+            };
+
+            await _dbContext.Friendships.AddAsync(friendShip);
+            var result = await _dbContext.SaveChangesAsync();
+
+            return result > 0 ? true : false;
+        }
+
+        public async Task<List<String>> GetMyFriendsInf(string username)
+        {
+            var user = await GetUserByName(username);
+            var userInfo = await _dbContext.Friendships.Where(u => u.User1Id == user.Id).ToListAsync();
+
+            List<String> users = new();
+            foreach (var val in userInfo)
+                users.Add(val.User2Id);
+
+
+            return users;
         }
     }
 }

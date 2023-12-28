@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 
 namespace SocialNetwork.Domain.Models
 {
-    public class Post
+    public class Comment
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime WasCreated { get; set; } = DateTime.UtcNow;
-        public DateTime WasEdited { get; set; } = DateTime.UtcNow; // idk
+        public Guid PostId { get; set; }
         public string UserId { get; set; }
-        public string MediaUrl { get; set; }
-        public string Title { get; set; }
+        public string Username { get; set; }
         public string Content { get; set; }
-        public int LikeCount { get; set; } = 0;
-        public int CommentCount { get; set; } = 0;
-        public List<Comment> Comments { get; set; }
+        [JsonIgnore]
+        public Post Post { get; set; }
         [JsonIgnore]
         public ApplicationUser User { get; set; }
     }

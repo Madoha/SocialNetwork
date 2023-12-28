@@ -30,7 +30,7 @@ var _configuration = builder.Configuration;
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
     // di
-    builder.Services.AddApplication();
+    builder.Services.AddApplication(_configuration);
     builder.Services.AddInfrastructure(_configuration);
 
     // configuring identity
@@ -39,6 +39,11 @@ var _configuration = builder.Configuration;
         options.SignIn.RequireConfirmedEmail = false;
         options.SignIn.RequireConfirmedPhoneNumber = false;
         options.SignIn.RequireConfirmedAccount = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
     });
 
     builder.Services.AddControllers();

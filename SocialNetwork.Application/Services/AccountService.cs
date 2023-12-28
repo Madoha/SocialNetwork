@@ -214,5 +214,47 @@ namespace SocialNetwork.Application.Services
                 Response = null
             };
         }
+
+        public async Task<IEnumerable<UserDTO>> GetAllUsers()
+        {
+            var users = await _accountRepository.GetAllUsers();
+            var usersDto = _mapper.Map<IEnumerable<UserDTO>>(users);
+            return usersDto;
+        }
+
+        public async Task<bool> PostComment(string postId, string username, CommentDTO comment)
+        {
+            var commentToPost = _mapper.Map<Comment>(comment);
+            commentToPost.PostId = Guid.Parse(postId);
+            commentToPost.Username = username;
+
+            var result = await _accountRepository.PostComment(commentToPost);
+            return result;
+        }
+
+        public async Task<bool> AddFriendToMy(string myUsername, string friendId)
+        {
+            var user = await _accountRepository.GetUserByName(myUsername);
+            var friendExist = await _accountRepository.GetUserById(friendId);
+
+            if (user == null || friendExist == null)
+                return false;
+
+            var result = await _accountRepository.AddFriendToMy(user, friendExist);
+            return result;
+        }
+
+        public async Task<List<UserDTO>> GetMyFriendsApp(string username)
+        {
+            // list of friends id
+            var friendsId = await _accountRepository.GetMyFriendsInf(username);
+
+            List<ApplicationUser> friendsUser = new();
+            foreach (var friend in friendsId)
+                friendsUser.Add(await _accountRepository.GetUserById(friend));
+
+            List<UserDTO> userDTOs = _mapper.Map<List<UserDTO>>(friendsUser);
+            return userDTOs;
+        }
     }
 }

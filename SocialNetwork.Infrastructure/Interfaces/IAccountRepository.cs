@@ -21,5 +21,11 @@ namespace SocialNetwork.Infrastructure.Interfaces
         Task<List<Post>> UserPostsByData(DateTime? from, DateTime? to, string username);
         Task<Post> EditPost(string postId, string username, Post post);
         Task<ApplicationUser> UserSelfProfile(string username);
+        Task<IEnumerable<ApplicationUser>> GetAllUsers();
+        Task<bool> PostComment(Comment commentToPost);
+        Task<ApplicationUser> GetUserByName(string username);
+        Task<ApplicationUser> GetUserById(string id);
+        Task<bool> AddFriendToMy(ApplicationUser user, ApplicationUser friendExist);
+        Task<List<String>> GetMyFriendsInf(string username);
     }
 }

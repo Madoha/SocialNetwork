@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SocialNetwork.Database.Models;
@@ -11,9 +12,10 @@ using SocialNetwork.Database.Models;
 namespace SocialNetwork.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231227164118_CommentFeature")]
+    partial class CommentFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,21 +52,21 @@ namespace SocialNetwork.Database.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "b23d6127-2765-49ec-87b1-71d59529416d",
+                            Id = "9b2eabda-be03-49c1-9f63-269afe626d0b",
                             ConcurrencyStamp = "1",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "0cb4c11b-956f-4a5b-ac97-bd2ad0550527",
+                            Id = "de5ab45f-7511-4848-ac1b-4a141d8f0677",
                             ConcurrencyStamp = "2",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
-                            Id = "5353b2fe-2f72-4258-8652-b1b257b8d7f3",
+                            Id = "b12f2f61-bb0a-444d-aa8d-74ad698ef35f",
                             ConcurrencyStamp = "3",
                             Name = "Tester",
                             NormalizedName = "TESTER"
@@ -278,24 +280,6 @@ namespace SocialNetwork.Database.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("SocialNetwork.Domain.Models.Friendship", b =>
-                {
-                    b.Property<string>("User1Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("User2Id")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("FriendshipDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("User1Id", "User2Id");
-
-                    b.HasIndex("User2Id");
-
-                    b.ToTable("Friendships");
-                });
-
             modelBuilder.Entity("SocialNetwork.Domain.Models.Post", b =>
                 {
                     b.Property<Guid>("Id")
@@ -393,7 +377,7 @@ namespace SocialNetwork.Database.Migrations
                     b.HasOne("SocialNetwork.Domain.Models.Post", "Post")
                         .WithMany("Comments")
                         .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SocialNetwork.Domain.Models.ApplicationUser", "User")
@@ -407,31 +391,12 @@ namespace SocialNetwork.Database.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SocialNetwork.Domain.Models.Friendship", b =>
-                {
-                    b.HasOne("SocialNetwork.Domain.Models.ApplicationUser", "User1")
-                        .WithMany("Friendships")
-                        .HasForeignKey("User1Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SocialNetwork.Domain.Models.ApplicationUser", "User2")
-                        .WithMany()
-                        .HasForeignKey("User2Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("User1");
-
-                    b.Navigation("User2");
-                });
-
             modelBuilder.Entity("SocialNetwork.Domain.Models.Post", b =>
                 {
                     b.HasOne("SocialNetwork.Domain.Models.ApplicationUser", "User")
                         .WithMany("Posts")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -440,8 +405,6 @@ namespace SocialNetwork.Database.Migrations
             modelBuilder.Entity("SocialNetwork.Domain.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Friendships");
 
                     b.Navigation("Posts");
                 });
