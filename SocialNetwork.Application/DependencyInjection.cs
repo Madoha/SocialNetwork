@@ -20,6 +20,9 @@ namespace SocialNetwork.Application
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             //services.AddScoped<RoleManager<ApplicationUser>>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<ICommentService, CommentService>();
+            services.AddScoped<IFriendService, FriendService>();
+            services.AddScoped<IPostService, PostService>();
 
             //var cloudinarySettings = configuration.GetSection("CloudinarySettings").Get<CloudinarySettings>();
             //services.AddSingleton(cloudinarySettings);

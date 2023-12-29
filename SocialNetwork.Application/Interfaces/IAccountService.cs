@@ -17,17 +17,7 @@ namespace SocialNetwork.Application.Interfaces
         Task<ApiResponse<string>> GetResetToken(string email);
         Task<ApiResponse<Message>> SendEmailReset(string link, string email);
         Task<ApiResponse<bool>> ResetPasswordApp(ResetPassword resetPassword);
-        Task<bool> AddPost(AddPost post, string username);
-        Task<List<Post>> AllPosts();
-        Task<List<Post>> UserPostsByData(DateTime? from, DateTime? to, string username);
-        Task<ApiResponse<List<PostDTO>>> GetUserPosts(string username);
-        Task<ApiResponse<bool>> DeleteUserPost(string postId, string username);
-        Task<ApiResponse<Post>> EditPost(string postId, string username, EditPost post);
-        Task<ApiResponse<Post>> GetPost(string postId);
         Task<ApiResponse<UserDTO>> UserSelfProfile(string username);
         Task<IEnumerable<UserDTO>> GetAllUsers();
-        Task<bool> PostComment(string postId, string username, CommentDTO comment);
-        Task<bool> AddFriendToMy(string myUsername, string friendId);
-        Task<List<UserDTO>> GetMyFriendsApp(string username);
     }
 }

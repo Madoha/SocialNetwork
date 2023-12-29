@@ -85,12 +85,5 @@ namespace SocialNetwork.Api.Controllers
             var result = await _authenticationService.RefreshToken(tokens);
             return result.IsSuccess ? Ok(result) : BadRequest(ModelState);
         }
-
-        //[HttpGet("/get-users")]
-        //public async Task<ApiResponse<List<RegisterResponse>>> getUsers()
-        //{
-        //    var result = await _authenticationService.GetAllUsers();
-        //    return result;
-        //}
     }
 }
